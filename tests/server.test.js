@@ -305,3 +305,71 @@ test('job description match parses a structured Gemini response when configured'
     else process.env.GEMINI_API_KEY = originalKey;
   }
 });
+
+
+test('resume tailoring validates inputs and never pretends AI is available without a key', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+  try {
+    await withServer(async (url) => {
+      const invalid = await fetch(`${url}/api/resume/tailor`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ resumeText: 'short', jobDescription: 'This is a job description that has enough words but should not matter until the resume is valid.' })
+      });
+      assert.equal(invalid.status, 400);
+      const response = await fetch(`${url}/api/resume/tailor`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          targetRole: 'Software Engineering Intern',
+          company: 'Example Company',
+          resumeText: 'Built a React project with a Node.js API, wrote automated tests, and used Git for version control.',
+          jobDescription: 'We need an intern to build React features, work with Node.js APIs, write tests, and collaborate with engineers on customer-facing software.'
+        })
+      });
+      assert.equal(response.status, 503);
+      assert.match((await response.json()).error, /not configured/i);
+    });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
+});
+
+test('resume tailoring returns structured drafts from a configured AI provider', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = 'test-key-not-a-real-secret';
+  try {
+    const draft = {
+      professionalSummary: 'Software engineering candidate with hands-on React and Node.js project experience.',
+      rewrittenBullets: ['Built a React interface backed by a Node.js API.', 'Added automated tests to validate key application behavior.'],
+      coverLetter: 'Dear Hiring Team, I am applying for the Software Engineering Intern role. My project work includes a React interface and Node.js API, and I have practiced writing automated tests. I would welcome the opportunity to discuss how I learn and contribute.',
+      truthCheck: ['Confirm that the project details accurately describe your own work.', 'Add metrics only if you can verify them.'],
+      followUpQuestions: ['What measurable result can you verify for this project?']
+    };
+    await withServer(async (url) => {
+      const response = await fetch(`${url}/api/resume/tailor`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          targetRole: 'Software Engineering Intern',
+          company: 'Example Company',
+          resumeText: 'Built a React project with a Node.js API, wrote automated tests, and used Git for version control.',
+          jobDescription: 'We need an intern to build React features, work with Node.js APIs, write tests, and collaborate with engineers on customer-facing software.'
+        })
+      });
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.source, 'gemini');
+      assert.match(body.draft.professionalSummary, /React and Node.js/i);
+      assert.equal(body.draft.rewrittenBullets.length, 2);
+      assert.match(body.draft.coverLetter, /Hiring Team/);
+      assert.ok(body.draft.truthCheck.length >= 1);
+    }, {
+      geminiFetch: async () => new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: JSON.stringify(draft) }] } }]
+      }), { status: 200, headers: { 'content-type': 'application/json' } })
+    });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
+});
