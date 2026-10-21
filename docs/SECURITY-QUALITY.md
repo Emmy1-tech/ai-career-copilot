@@ -4,7 +4,7 @@ This is a portfolio/demo application. The checks below distinguish protections a
 
 ## Current safeguards
 
-- Express disables the `X-Powered-By` header.
+- Express disables the `X-Powered-By` header and sets a Content Security Policy, anti-framing, MIME-sniffing, referrer, and permissions headers.
 - JSON request bodies are limited to 1 MB; malformed JSON receives a stable 400 response and oversized bodies receive a stable 413 response.
 - Application creation validates required fields, status values, optional text fields, and HTTP(S) job URLs.
 - Resume and assistant inputs have length/type checks.
@@ -25,7 +25,7 @@ This is a portfolio/demo application. The checks below distinguish protections a
 
 ### Additional hardening
 
-- Add security headers, including an explicit Content Security Policy compatible with the UI.
+- Validate the Content Security Policy in a real browser and consider HSTS only when HTTPS deployment is confirmed.
 - Add edge-level/distributed rate limits and verify provider timeouts against the chosen host.
 - Validate model output before rendering or persisting it; escape untrusted content in the browser.
 - Avoid logging resumes, prompts, API keys, or other sensitive user content.
