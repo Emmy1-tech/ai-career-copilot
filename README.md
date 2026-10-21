@@ -4,7 +4,7 @@ AI Career Copilot is a portfolio-quality full-stack career companion for job see
 
 ## GitHub Wiki
 
-The official GitHub Wiki is available at [`docs/wiki/`](docs/wiki/README.md) so changes can be reviewed alongside .
+The [official GitHub Wiki](https://github.com/Emmy1-tech/ai-career-copilot/wiki) is available for browsable project documentation. The version-controlled documentation mirror is in [`docs/wiki/`](docs/wiki/README.md).
 
 ## Product features
 
@@ -25,7 +25,16 @@ The official GitHub Wiki is available at [`docs/wiki/`](docs/wiki/README.md) so 
 - Local JSON persistence adapter for development
 - Optional Google Gemini API integration
 
-## Run locally
+## Run locally on Windows (easiest)
+
+1. Download this repository using **Code → Download ZIP** and extract it.
+2. Open the extracted `ai-career-copilot` folder.
+3. Double-click `start-local.bat`. It checks for Node.js, creates `.env` from `.env.example` if needed, installs dependencies if missing, and starts the server.
+4. Open [http://localhost:1295](http://localhost:1295) in your browser. Keep the terminal window open while using the app.
+
+For screenshots and troubleshooting, read [LOCAL-SETUP.md](LOCAL-SETUP.md).
+
+## Run locally manually
 
 1. Install Node.js 20 or newer.
 2. Install dependencies:
