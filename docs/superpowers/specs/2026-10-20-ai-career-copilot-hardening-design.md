@@ -6,7 +6,7 @@ Repository: https://github.com/Emmy1-tech/ai-career-copilot
 
 ## 1. Goal
 
-Continue the existing AI Career Copilot repository into a reliable project that can be developed locally at http://localhost:1295 and then deployed as a publicly reachable app on a free or free-tier host, without rebuilding the product or falsely presenting demo data and fallback analysis as live AI or live vacancies.
+Continue the existing AI Career Copilot repository into a reliable project that can be developed locally at http://127.0.0.1:1295 and then deployed as a publicly reachable app on a free or free-tier host, without rebuilding the product or falsely presenting demo data and fallback analysis as live AI or live vacancies.
 
 The app must remain a career-support tool. Any agent behavior is bounded and plan-oriented; it must not submit applications, message employers, or perform other consequential external actions without explicit user approval.
 
@@ -35,7 +35,7 @@ Success means a clean local setup is documented, automated checks provide trustw
 
 ### Recommended: staged hardening, then host adaptation
 
-First make the existing Node/Express project reproducible and improve tests and safety. Next decide the deployment architecture based on the actual hosting constraints. Cloudflare Workers with D1 is a candidate, not an assumption: the Express application and filesystem JSON store cannot be presumed to run unchanged on Workers. Preserve a local Node adapter for localhost:1295 and use an explicit cloud adapter/schema only if a compatibility review supports it.
+First make the existing Node/Express project reproducible and improve tests and safety. Next decide the deployment architecture based on the actual hosting constraints. Cloudflare Workers with D1 is a candidate, not an assumption: the Express application and filesystem JSON store cannot be presumed to run unchanged on Workers. Preserve a local Node adapter for 127.0.0.1:1295 and use an explicit cloud adapter/schema only if a compatibility review supports it.
 
 Advantages: lowest disruption, clear testable increments, no accidental public exposure of personal data. Trade-off: cloud deployment may require a deliberate adapter or a different host rather than a one-click upload.
 

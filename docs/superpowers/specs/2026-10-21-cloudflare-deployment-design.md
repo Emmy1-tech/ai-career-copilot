@@ -6,7 +6,7 @@ Repository: https://github.com/Emmy1-tech/ai-career-copilot
 
 ## 1. Goal
 
-Make the existing AI Career Copilot available online on a free-tier Cloudflare URL while preserving local development at http://localhost:1295. The public deployment must support real job-application workflows without exposing one user's resume, application tracker, or chat history to another user.
+Make the existing AI Career Copilot available online on a free-tier Cloudflare URL while preserving local development at http://127.0.0.1:1295. The public deployment must support real job-application workflows without exposing one user's resume, application tracker, or chat history to another user.
 
 This is a continuation of the existing repository, not a rebuild. The current Express application and browser UI remain the product baseline.
 

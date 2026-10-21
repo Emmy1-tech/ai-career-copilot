@@ -1,6 +1,6 @@
 # Run AI Career Copilot on Windows
 
-This guide is for running the project on your own Windows computer at http://localhost:1295.
+This guide is for running the project on your own Windows computer at http://127.0.0.1:1295.
 
 ## Easiest method
 
@@ -12,7 +12,7 @@ This guide is for running the project on your own Windows computer at http://loc
 6. Double-click start-local.bat.
 7. If Windows says Node.js is missing, install Node.js 20 or newer from https://nodejs.org/en/download. After installation, close the launcher window and double-click start-local.bat again.
 8. Wait while the launcher installs dependencies and starts the server.
-9. Open Google Chrome, click the address bar, type http://localhost:1295, and press Enter.
+9. Open Google Chrome, click the address bar, type http://127.0.0.1:1295, and press Enter.
 10. Keep the black terminal window open while using the site. To stop the server, click that window and press Ctrl+C.
 
 ## AI assistant setup
@@ -37,6 +37,6 @@ Never share your API key or commit your .env file to GitHub. Keep the key on the
 - Page cannot be reached: make sure the launcher terminal is still open and that the server started without an error.
 - Dependency installation fails: check your internet connection and copy the full terminal error for diagnosis.
 
-## What localhost means
+## What 127.0.0.1 means
 
-localhost is this computer only. The site is not public on the internet just because it opens at localhost:1295.
+127.0.0.1 is this computer only. The site is not public on the internet just because it opens at 127.0.0.1:1295.

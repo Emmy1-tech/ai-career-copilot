@@ -24,7 +24,7 @@ npm run check
 npm test
 ```
 
-For local development, run `npm run dev` and open `http://localhost:1295`.
+For local development, run `npm run dev` and open `http://127.0.0.1:1295`.
 
 ## Reading results
 
