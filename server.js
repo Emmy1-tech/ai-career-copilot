@@ -3,6 +3,7 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './src/store.js';
+import { planCareerTask } from './src/career-agent.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -106,6 +107,13 @@ export function createApp({ store = createStore() } = {}) {
         nextSteps: ['Match two project bullets to requirements in the job description.', 'Start bullets with an action verb and explain the result.', 'Keep every claim accurate and ready to discuss in an interview.']
       };
       res.json({ source: 'rules-based-demo', analysis });
+    } catch (error) { next(error); }
+  });
+
+  app.post('/api/agent/plan', (req, res, next) => {
+    try {
+      const plan = planCareerTask(req.body ?? {});
+      res.json(plan);
     } catch (error) { next(error); }
   });
 
