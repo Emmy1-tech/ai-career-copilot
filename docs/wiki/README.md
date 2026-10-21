@@ -1,5 +1,7 @@
 # AI Career Copilot Wiki
 
+> Official GitHub Wiki: https://github.com/Emmy1-tech/ai-career-copilot/wiki. This folder is the version-controlled documentation mirror in the code repository.
+
 Welcome to the project wiki. This folder keeps the technical documentation versioned alongside the code, so changes to behavior and documentation can be reviewed together.
 
 ## Wiki pages
