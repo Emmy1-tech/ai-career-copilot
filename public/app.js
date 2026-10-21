@@ -153,6 +153,29 @@ async function initResume() {
       $('#resumeResults').innerHTML = `<div class="results-placeholder"><div class="placeholder-icon">!</div><h3>Review couldn't finish</h3><p>${escapeHtml(error.message)}</p></div>`;
     } finally { button.disabled = false; button.innerHTML = original; }
   });
+
+  $('#jobMatchForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const resumeText = $('#resumeText').value.trim();
+    if (resumeText.length < 80) {
+      $('#jobMatchResults').innerHTML = '<div class="results-placeholder"><h3>Add your resume first</h3><p>Paste at least 80 characters into the Resume text field above, then compare it with the job description.</p></div>';
+      toast('Add your resume text before matching a job.');
+      return;
+    }
+    const button = $('button[type="submit"]', event.currentTarget);
+    const original = button.innerHTML;
+    button.disabled = true; button.textContent = 'Comparing…';
+    $('#jobMatchResults').innerHTML = '<div class="results-placeholder"><div class="placeholder-icon">↔</div><h3>Comparing the requirements…</h3><p>Looking for evidence in your resume and relevant terms in the job posting.</p></div>';
+    try {
+      const data = await api('/api/resume/match', { method: 'POST', body: JSON.stringify({ resumeText, targetRole: $('#targetRole').value, jobDescription: $('#jobDescription').value }) });
+      const a = data.analysis;
+      const renderList = (items) => items?.length ? items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') : '<li>No items detected in this first pass.</li>';
+      $('#jobMatchResults').innerHTML = `<div><span class="result-label">${data.source === 'gemini' ? 'AI-POWERED COMPARISON' : 'RULES-BASED KEYWORD CHECK'}</span><div class="analysis-score"><div class="score-circle">${Number(a.alignmentScore) || 0}%</div><div><h3>Evidence alignment</h3><p>${escapeHtml(a.summary)}</p></div></div><p class="form-hint">${escapeHtml(a.note)}</p><div class="analysis-section"><h4>Requirements mentioned in your resume</h4><ul>${renderList(a.matchedRequirements)}</ul></div><div class="analysis-section"><h4>Requirements not detected</h4><ul>${renderList(a.missingRequirements)}</ul></div><div class="analysis-section"><h4>Evidence gaps to review</h4><ul>${renderList(a.evidenceGaps)}</ul></div><div class="analysis-section"><h4>Honest tailoring suggestions</h4><ul>${renderList(a.tailoringSuggestions)}</ul></div><div class="analysis-section"><h4>Next steps</h4><ul>${renderList(a.nextSteps)}</ul></div></div>`;
+      if (data.source !== 'gemini') toast('This is a keyword-based first pass, not an ATS score or hiring prediction.');
+    } catch (error) {
+      $('#jobMatchResults').innerHTML = `<div class="results-placeholder"><div class="placeholder-icon">!</div><h3>Comparison couldn't finish</h3><p>${escapeHtml(error.message)}</p></div>`;
+    } finally { button.disabled = false; button.innerHTML = original; }
+  });
 }
 async function loadJobs() {
   if (state.jobs.length) return renderJobs();
