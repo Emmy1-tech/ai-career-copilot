@@ -320,7 +320,7 @@ function buildRuleBasedMatch(resume, description) {
 }
 
 function parseJobMatchResult(text) {
-  const cleaned = text.replace(/^\`\`\`(?:json)?\\s*/i, '').replace(/\\s*\`\`\`$/, '');
+  const cleaned = text.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/, '');
   let result;
   try {
     result = JSON.parse(cleaned);
@@ -348,7 +348,7 @@ function parseJobMatchResult(text) {
 }
 
 function parseJsonResult(text) {
-  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const cleaned = text.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/, '');
   try {
     const result = JSON.parse(cleaned);
     return {
