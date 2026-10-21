@@ -19,7 +19,7 @@ export function createApp({ store = createStore(), geminiFetch = fetch, aiRateLi
   });
   app.use(express.json({ limit: '1mb' }));
   const limitAiRequests = createRateLimiter(aiRateLimit);
-  app.use('/api/resume/analyze', limitAiRequests);
+  app.use('/api/resume', limitAiRequests);
   app.use('/api/assistant', limitAiRequests);
   app.use(express.static(path.join(__dirname, 'public')));
 
@@ -118,6 +118,34 @@ export function createApp({ store = createStore(), geminiFetch = fetch, aiRateLi
         nextSteps: ['Match two project bullets to requirements in the job description.', 'Start bullets with an action verb and explain the result.', 'Keep every claim accurate and ready to discuss in an interview.']
       };
       res.json({ source: 'rules-based-demo', analysis });
+    } catch (error) { next(error); }
+  });
+
+  app.post('/api/resume/match', async (req, res, next) => {
+    try {
+      const { resumeText, jobDescription, targetRole = 'Software Engineering Intern' } = req.body ?? {};
+      if (typeof resumeText !== 'string' || resumeText.trim().length < 80) {
+        return res.status(400).json({ error: 'Paste at least 80 characters of resume text.' });
+      }
+      if (typeof jobDescription !== 'string' || jobDescription.trim().length < 80) {
+        return res.status(400).json({ error: 'Paste at least 80 characters from the job description.' });
+      }
+      if (typeof targetRole !== 'string' || !targetRole.trim() || targetRole.trim().length > 160) {
+        return res.status(400).json({ error: 'Target role must be between 1 and 160 characters.' });
+      }
+
+      const resume = resumeText.trim().slice(0, 12000);
+      const description = jobDescription.trim().slice(0, 12000);
+      const role = targetRole.trim();
+      if (process.env.GEMINI_API_KEY) {
+        const result = await askGemini(
+          'You are a rigorous career coach. Compare the supplied resume with the supplied job description for the target role. Return only valid JSON with keys: alignmentScore (integer 0-100), summary (string), matchedRequirements (array of strings), missingRequirements (array of strings), evidenceGaps (array of strings), tailoringSuggestions (array of strings), nextSteps (array of strings). Score only the evidence visible in the resume against the stated requirements; this is a rough guidance estimate, not an ATS score or hiring prediction. Do not assume a missing skill means the person lacks it. Never invent qualifications, projects, employers, metrics, or experience. Suggest adding a keyword only if the candidate can honestly support it. Keep each array to at most 8 concise items.',
+          `Target role: ${role}\nResume text:\n${resume}\n\nJob description:\n${description}`,
+          geminiFetch
+        );
+        return res.json({ source: 'gemini', analysis: parseJobMatchResult(result) });
+      }
+      return res.json({ source: 'rules-based-demo', analysis: buildRuleBasedMatch(resume, description) });
     } catch (error) { next(error); }
   });
 
@@ -247,6 +275,75 @@ function createRateLimiter({ windowMs = 60_000, max = 20 } = {}) {
     }
     bucket.count += 1;
     return next();
+  };
+}
+
+const jobKeywordCatalog = [
+  'JavaScript', 'TypeScript', 'Python', 'SQL', 'React', 'Node.js', 'Express',
+  'REST API', 'Git', 'GitHub', 'automated testing', 'CI/CD', 'Docker', 'AWS',
+  'Azure', 'PostgreSQL', 'MongoDB', 'communication', 'collaboration', 'Agile',
+  'problem solving', 'data analysis', 'Excel', 'Java', 'Linux', 'API',
+  'debugging', 'HTML', 'CSS', 'machine learning', 'project management'
+];
+
+function normalizeKeyword(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function buildRuleBasedMatch(resume, description) {
+  const normalizedResume = ` ${normalizeKeyword(resume)} `;
+  const normalizedDescription = ` ${normalizeKeyword(description)} `;
+  const mentioned = jobKeywordCatalog.filter((term) => normalizedDescription.includes(` ${normalizeKeyword(term)} `));
+  const matchedRequirements = mentioned.filter((term) => normalizedResume.includes(` ${normalizeKeyword(term)} `));
+  const missingRequirements = mentioned.filter((term) => !normalizedResume.includes(` ${normalizeKeyword(term)} `));
+  const alignmentScore = mentioned.length ? Math.round((matchedRequirements.length / mentioned.length) * 100) : 0;
+  return {
+    alignmentScore,
+    summary: mentioned.length
+      ? `The resume text includes ${matchedRequirements.length} of ${mentioned.length} tracked keywords found in this job description.`
+      : 'The job description did not contain terms from the built-in keyword list, so this first pass cannot estimate keyword coverage.',
+    matchedRequirements,
+    missingRequirements,
+    evidenceGaps: missingRequirements.slice(0, 8).map((term) => `The pasted resume does not clearly mention ${term}; include it only if you have truthful, relevant evidence.`),
+    tailoringSuggestions: [
+      'Prioritize the projects and experience most relevant to the responsibilities in this description.',
+      'Use the employer’s wording only where it accurately describes your skills and experience.',
+      'For each important requirement, show evidence: what you built, the tools you used, and the result.'
+    ],
+    nextSteps: [
+      'Review every missing keyword and decide whether you have real experience that supports it.',
+      'Rewrite one or two relevant project bullets using accurate actions and outcomes.',
+      'Prepare an interview example for each skill you choose to highlight.'
+    ],
+    note: 'This keyword coverage estimate is not an ATS score or a hiring prediction. Missing terms were not detected in the pasted resume; they do not prove you lack those skills.'
+  };
+}
+
+function parseJobMatchResult(text) {
+  const cleaned = text.replace(/^\`\`\`(?:json)?\\s*/i, '').replace(/\\s*\`\`\`$/, '');
+  let result;
+  try {
+    result = JSON.parse(cleaned);
+  } catch {
+    const error = new Error('AI provider returned an invalid job-match response.');
+    error.status = 502;
+    throw error;
+  }
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
+    const error = new Error('AI provider returned an invalid job-match response.');
+    error.status = 502;
+    throw error;
+  }
+  const list = (value, max = 8) => Array.isArray(value) ? value.filter((item) => typeof item === 'string').map((item) => item.slice(0, 500)).slice(0, max) : [];
+  return {
+    alignmentScore: Math.max(0, Math.min(100, Number(result.alignmentScore) || 0)),
+    summary: typeof result.summary === 'string' ? result.summary.slice(0, 2000) : '',
+    matchedRequirements: list(result.matchedRequirements),
+    missingRequirements: list(result.missingRequirements),
+    evidenceGaps: list(result.evidenceGaps),
+    tailoringSuggestions: list(result.tailoringSuggestions),
+    nextSteps: list(result.nextSteps),
+    note: 'This is an AI-generated evidence-alignment estimate, not an ATS score or a hiring prediction. Verify every suggestion before using it.'
   };
 }
 
