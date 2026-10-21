@@ -37,7 +37,7 @@ AI Career Copilot is a portfolio-quality full-stack career companion for job see
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000).
+5. Open [http://localhost:1295](http://localhost:1295).
 
 Run the tests and syntax checks:
 
@@ -50,7 +50,7 @@ npm run check
 
 See `.env.example`.
 
-- `PORT`: local server port (default `3000`)
+- `PORT`: local server port (default `1295`)
 - `NODE_ENV`: use `test` to prevent auto-starting the HTTP server in tests
 - `DATA_DIR`: folder used for application JSON persistence
 - `GEMINI_API_KEY`: optional server-side API key; never expose it in browser code
@@ -87,6 +87,9 @@ The persistence adapter is intentionally simple so the project is easy to unders
 
 ## Security and production readiness
 
+Baseline HTTP security headers are set by the Express server. This is not a substitute for a full security review, authentication, authorization, rate limiting, or a managed database. See [SECURITY.md](SECURITY.md) and the [security and quality wiki](docs/wiki/security-quality.md).
+
+
 This is an internship portfolio project and is not yet a production multi-user service. Authentication/authorization, rate limiting, CSRF strategy, a managed database, monitoring, backups, and privacy/legal review are not implemented. The current app has no user accounts, so do not use it to store real sensitive job-search data on a public server. Keep secrets in the host's environment settings and never commit `.env`.
 
 ## Data honesty
@@ -95,7 +98,7 @@ The role cards are sample data for demonstrating search and matching UI; they ar
 
 ## Deployment notes
 
-The repository can run on a Node.js host that supports a persistent filesystem, or be adapted to a managed database and serverless platform. A free static hosting service alone cannot run this Express backend. See `DEPLOYMENT.md` for the deployment checklist and custom-domain notes.
+The repository can run on a Node.js host that supports a persistent filesystem, or be adapted to a managed database and serverless platform. A free static hosting service alone cannot run this Express backend. See `DEPLOYMENT.md` for hosting and custom-domain notes, `docs/CI.md` for continuous integration, and `docs/wiki/README.md` for the project wiki. The career-planning agent is documented in `docs/wiki/career-agent.md`; its current API is plan-only.
 
 ## Project documentation
 
