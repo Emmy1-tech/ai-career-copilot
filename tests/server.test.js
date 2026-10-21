@@ -89,3 +89,37 @@ test('unknown routes return JSON 404 errors', async () => {
     assert.equal((await response.json()).error, 'Route not found.');
   });
 });
+
+
+test('invalid application status and missing record return useful client errors', async () => {
+  await withServer(async (url) => {
+    const invalid = await fetch(`${url}/api/applications`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ company: 'Acme', role: 'Intern', status: 'Maybe' })
+    });
+    assert.equal(invalid.status, 400);
+    const missing = await fetch(`${url}/api/applications/not-a-real-id`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ status: 'Interview' })
+    });
+    assert.equal(missing.status, 404);
+  });
+});
+
+test('assistant endpoint explains missing AI configuration without pretending to answer', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+  try {
+    await withServer(async (url) => {
+      const response = await fetch(`${url}/api/assistant`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: 'Help me prepare for a software engineering interview.' })
+      });
+      assert.equal(response.status, 503);
+      assert.match((await response.json()).error, /not configured/i);
+    });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
+});
