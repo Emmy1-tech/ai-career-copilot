@@ -123,3 +123,34 @@ test('assistant endpoint explains missing AI configuration without pretending to
     else process.env.GEMINI_API_KEY = originalKey;
   }
 });
+
+test('career agent creates a safe plan without claiming to execute actions', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/api/agent/plan`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ goal: 'Prepare my portfolio for an internship', category: 'portfolio' })
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.agent, 'career-planner-v1');
+    assert.equal(body.mode, 'plan-only');
+    assert.ok(body.steps.length >= 3);
+    assert.ok(body.steps.every((step) => step.status === 'pending'));
+    assert.match(body.safetyNote, /no applications.*performed/i);
+  });
+});
+
+test('career agent rejects empty goals and unsupported categories', async () => {
+  await withServer(async (url) => {
+    const empty = await fetch(`${url}/api/agent/plan`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ goal: '  ' })
+    });
+    assert.equal(empty.status, 400);
+    const invalid = await fetch(`${url}/api/agent/plan`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ goal: 'Find a role', category: 'hack-the-world' })
+    });
+    assert.equal(invalid.status, 400);
+  });
+});
