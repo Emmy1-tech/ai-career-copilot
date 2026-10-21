@@ -4,7 +4,7 @@ AI Career Copilot is a portfolio-quality full-stack career companion for job see
 
 ## GitHub Wiki
 
-The official GitHub Wiki is available at https://github.com/Emmy1-tech/ai-career-copilot/wiki. Versioned technical documentation also lives in [`docs/wiki/`](docs/wiki/README.md) so changes can be reviewed alongside code.
+The official GitHub Wiki is available at [`docs/wiki/`](docs/wiki/README.md) so changes can be reviewed alongside .
 
 ## Product features
 
