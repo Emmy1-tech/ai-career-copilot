@@ -33,7 +33,7 @@ The [official GitHub Wiki](https://github.com/Emmy1-tech/ai-career-copilot/wiki)
 3. Double-click `start-local.bat`. It checks for Node.js, creates `.env` from `.env.example` if needed, installs dependencies if missing, and starts the server.
 4. Open [http://localhost:1295](http://localhost:1295) in your browser. Keep the terminal window open while using the app.
 
-For screenshots and troubleshooting, read [LOCAL-SETUP.md](LOCAL-SETUP.md).
+For screenshots and local troubleshooting, read [LOCAL-SETUP.md](LOCAL-SETUP.md). To test the running app on your phone over the same trusted Wi-Fi, follow [PHONE-TEST.md](PHONE-TEST.md). For hosting and domain decisions, read [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Run locally manually
 
