@@ -10,7 +10,8 @@ Browser (public/)
   v
 Express application (server.js)
   |-- HTTP security headers and JSON size limit
-  |-- Resume review (Gemini when configured, labelled rules-based fallback otherwise)
+  |-- Resume review and job-description match (Gemini when configured, labelled rules-based fallback otherwise)
+  |-- In-memory per-process request limiting for AI routes
   |-- Career assistant (Gemini key required)
   |-- Career agent plan endpoint (src/career-agent.js)
   |-- Application API
@@ -39,6 +40,7 @@ Store adapter (src/store.js) --> DATA_DIR/applications.json
 | PATCH | `/api/applications/:id` | Update a status |
 | DELETE | `/api/applications/:id` | Delete a record |
 | POST | `/api/resume/analyze` | Resume feedback |
+| POST | `/api/resume/match` | Compare resume evidence with job requirements; not an ATS score |
 | POST | `/api/agent/plan` | Create a plan-only career task plan |
 | POST | `/api/assistant` | Gemini career assistant |
 | GET | `/api/jobs` | Sample listings for the demo UI |
@@ -53,4 +55,4 @@ Store adapter (src/store.js) --> DATA_DIR/applications.json
 
 ## Known gaps
 
-Authentication and per-user authorization are not implemented. Anyone who can reach the current API can access or change the same application list. Local JSON writes do not provide robust multi-process locking. A managed database, identity layer, per-user access checks, rate limits, and deployed-browser tests are required before a public multi-user launch.
+Authentication and per-user authorization are not implemented. Anyone who can reach the current API can access or change the same application list. Local JSON writes do not provide robust multi-process locking. The current AI endpoint limiter is in-memory and per-process only. A managed database, identity layer, per-user access checks, edge-level/distributed rate limits, and deployed-browser tests are required before a public multi-user launch.
