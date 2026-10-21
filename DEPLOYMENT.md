@@ -4,6 +4,10 @@
 
 This repository serves the frontend and Express API from the same Node.js process. A static-only host can publish the HTML/CSS/JS, but it cannot run `server.js` or persist API data. For a public demo, choose a Node.js service with a persistent disk or first migrate the JSON store to a managed database.
 
+## Local development
+
+The default local address is `http://localhost:1295`. Run `npm install`, copy `.env.example` to `.env`, and start with `npm run dev`. Set `PORT` explicitly in the host environment for deployment; hosted platforms often inject their own port.
+
 ## Basic deployment steps
 
 1. Connect `Emmy1-tech/ai-career-copilot` to a Node.js hosting provider that supports Node 20+.
@@ -21,6 +25,10 @@ You must control the domain to connect it. In the host dashboard, add `careercop
 ## Free hosted URL
 
 Many platforms offer a free subdomain, but terms, quotas, sleep behavior, persistent disk, and backend support vary. Confirm that the selected free tier supports a long-running Node server and persistence before using it. A free static site can host a landing page, but it cannot run this backend by itself.
+
+## Continuous integration
+
+GitHub Actions runs on pushes to `main` and pull requests targeting `main`. The workflow in `.github/workflows/ci.yml` tests Node.js 20 and 22, installs dependencies, checks JavaScript syntax, and runs the API test suite. Read [CI.md](docs/CI.md) for workflow details and troubleshooting. CI passing means those automated checks pass; it does not mean a live deployment, Gemini key, custom domain, or browser session has been verified.
 
 ## Production hardening still required
 
