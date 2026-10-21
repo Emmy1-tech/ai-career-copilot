@@ -1,6 +1,10 @@
 # AI Career Copilot
 
+**Live app:** https://ai-career-copilot-emmy.onrender.com
+
 AI Career Copilot is a portfolio-quality full-stack career companion for job seekers and internship applicants. It brings resume feedback, job-match exploration, application tracking, interview practice, and a career-assistant interface into one responsive workspace.
+
+> The hosted demo is public. Do not enter sensitive personal information yet: the current application tracker has no sign-in or per-user data isolation, and its JSON-file storage is not durable on the current hosting setup.
 
 ## GitHub Wiki
 
@@ -26,14 +30,14 @@ The [official GitHub Wiki](https://github.com/Emmy1-tech/ai-career-copilot/wiki)
 - Local JSON persistence adapter for development
 - Optional Google Gemini API integration
 
-## Run locally on Windows (easiest)
+## Run locally for development
 
 1. Download this repository using **Code → Download ZIP** and extract it.
 2. Open the extracted `ai-career-copilot` folder.
-3. Double-click `start-local.bat`. It checks for Node.js, creates `.env` from `.env.example` if needed, installs dependencies if missing, and starts the server.
-4. Open [http://localhost:1295](http://localhost:1295) in your browser. Keep the terminal window open while using the app.
+3. Double-click `start-local.bat`. It checks for Node.js, creates `.env` from `.env.example` if needed, installs dependencies if missing, and starts the local development server.
+4. Open the local address shown by the launcher. Keep the terminal window open while using the local server.
 
-For screenshots and local troubleshooting, read [LOCAL-SETUP.md](LOCAL-SETUP.md). To test the running app on your phone over the same trusted Wi-Fi, follow [PHONE-TEST.md](PHONE-TEST.md). For hosting and domain decisions, read [DEPLOYMENT.md](DEPLOYMENT.md).
+For screenshots and local troubleshooting, read [LOCAL-SETUP.md](LOCAL-SETUP.md). For the hosted service and deployment details, read [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Run locally manually
 
@@ -51,7 +55,7 @@ For screenshots and local troubleshooting, read [LOCAL-SETUP.md](LOCAL-SETUP.md)
    npm run dev
    ```
 
-5. Open [http://localhost:1295](http://localhost:1295).
+5. Open the local address printed by the server.
 
 Run the tests and syntax checks:
 
@@ -105,16 +109,15 @@ The persistence adapter is intentionally simple so the project is easy to unders
 
 Baseline HTTP security headers, including a Content Security Policy, are set by the Express server. This is not a substitute for a full security review, authentication, authorization, distributed rate limiting, or a managed database. The API applies a basic in-memory per-process request limit to AI endpoints. See [SECURITY.md](SECURITY.md) and the [security and quality wiki](docs/wiki/security-quality.md).
 
-
 This is an internship portfolio project and is not yet a production multi-user service. Authentication/authorization, a CSRF strategy, a managed database, distributed rate limiting, monitoring, backups, and privacy/legal review are not implemented. The current app has no user accounts, so do not use it to store real sensitive job-search data on a public server. Keep secrets in the host's environment settings and never commit `.env`.
 
 ## Data honesty
 
 The role cards are sample data for demonstrating search and matching UI; they are not verified live vacancies. Without `GEMINI_API_KEY`, resume review returns clearly labelled rules-based feedback and the assistant endpoint explains that AI is not configured. It does not pretend that a live AI model has answered.
 
-## Deployment notes
+## Deployment
 
-The repository can run on a Node.js host that supports a persistent filesystem, or be adapted to a managed database and serverless platform. A free static hosting service alone cannot run this Express backend. See `DEPLOYMENT.md` for hosting and custom-domain notes, `docs/CI.md` for continuous integration, and `docs/wiki/README.md` for the project wiki. The career-planning agent is documented in `docs/wiki/career-agent.md`; its current API is plan-only.
+The hosted app is available at **https://ai-career-copilot-emmy.onrender.com**. Render deploys from the `main` branch. The service runs the Express backend and serves the browser UI. See [`DEPLOYMENT.md`](DEPLOYMENT.md) for current hosting details and limitations, [`docs/CI.md`](docs/CI.md) for continuous integration, and [`docs/wiki/README.md`](docs/wiki/README.md) for the project wiki.
 
 ## Project documentation
 
