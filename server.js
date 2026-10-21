@@ -7,7 +7,7 @@ import { planCareerTask } from './src/career-agent.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export function createApp({ store = createStore() } = {}) {
+export function createApp({ store = createStore(), geminiFetch = fetch, aiRateLimit = { windowMs: 60_000, max: 20 } } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -18,6 +18,9 @@ export function createApp({ store = createStore() } = {}) {
     next();
   });
   app.use(express.json({ limit: '1mb' }));
+  const limitAiRequests = createRateLimiter(aiRateLimit);
+  app.use('/api/resume/analyze', limitAiRequests);
+  app.use('/api/assistant', limitAiRequests);
   app.use(express.static(path.join(__dirname, 'public')));
 
   app.get('/api/health', (_req, res) => {
@@ -97,7 +100,8 @@ export function createApp({ store = createStore() } = {}) {
       if (process.env.GEMINI_API_KEY) {
         const result = await askGemini(
           'You are a practical career coach. Review the resume text for the target role. Return concise JSON with keys: score (integer 0-100), summary (string), strengths (array of strings), improvements (array of strings), keywords (array of strings), nextSteps (array of strings). Be honest, do not invent credentials, and do not claim certainty about ATS systems.',
-          `Target role: ${targetRole.trim().slice(0, 160)}\nResume text:\n${text}`
+          `Target role: ${targetRole.trim().slice(0, 160)}\nResume text:\n${text}`,
+          geminiFetch
         );
         return res.json({ source: 'gemini', analysis: parseJsonResult(result) });
       }
@@ -132,7 +136,8 @@ export function createApp({ store = createStore() } = {}) {
       if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: 'The AI assistant is not configured yet. Add GEMINI_API_KEY to your environment and restart the server. Resume review has a clearly labelled rules-based fallback.' });
       const answer = await askGemini(
         'You are AI Career Copilot, a supportive, candid career coach for job seekers and software engineering internship applicants. Give specific, actionable advice. Do not invent job listings, qualifications, or outcomes. If information is missing, ask a concise follow-up.',
-        message.trim()
+        message.trim(),
+        geminiFetch
       );
       res.json({ answer, source: 'gemini' });
     } catch (error) { next(error); }
@@ -174,30 +179,75 @@ function isSafeHttpUrl(value) {
   catch { return false; }
 }
 
-async function askGemini(systemInstruction, prompt) {
+async function askGemini(systemInstruction, prompt, fetchImpl = fetch) {
   const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(process.env.GEMINI_API_KEY)}`;
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: systemInstruction }] },
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.3, maxOutputTokens: 1200 }
-    }),
-    signal: AbortSignal.timeout(30000)
-  });
+  let response;
+  try {
+    response = await fetchImpl(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 1200 }
+      }),
+      signal: AbortSignal.timeout(30000)
+    });
+  } catch (cause) {
+    const timedOut = cause?.name === 'TimeoutError' || cause?.name === 'AbortError';
+    const error = new Error(timedOut ? 'AI provider timed out.' : 'AI provider is unavailable.');
+    error.status = timedOut ? 504 : 502;
+    throw error;
+  }
   if (!response.ok) {
-    const detail = await response.text();
-    console.error('Gemini request failed:', response.status, detail.slice(0, 500));
+    // Provider response bodies can contain sensitive request/account details; never log them.
+    console.warn('Gemini request failed with HTTP status:', response.status);
     const error = new Error('AI provider request failed.');
     error.status = 502;
     throw error;
   }
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    const error = new Error('AI provider returned an invalid response.');
+    error.status = 502;
+    throw error;
+  }
   const answer = data.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('').trim();
-  if (!answer) throw new Error('AI provider returned an empty response.');
+  if (!answer) {
+    const error = new Error('AI provider returned an empty response.');
+    error.status = 502;
+    throw error;
+  }
   return answer;
+}
+
+function createRateLimiter({ windowMs = 60_000, max = 20 } = {}) {
+  const buckets = new Map();
+  return (req, res, next) => {
+    const now = Date.now();
+    const key = req.ip || req.socket.remoteAddress || 'unknown';
+    let bucket = buckets.get(key);
+    if (!bucket || now - bucket.startedAt >= windowMs) {
+      if (buckets.size >= 1000 && !buckets.has(key)) {
+        for (const [candidate, value] of buckets) {
+          if (now - value.startedAt >= windowMs) buckets.delete(candidate);
+        }
+        if (buckets.size >= 1000) {
+          return res.status(429).json({ error: 'Too many requests. Please try again shortly.' });
+        }
+      }
+      bucket = { startedAt: now, count: 0 };
+      buckets.set(key, bucket);
+    }
+    if (bucket.count >= max) {
+      return res.status(429).json({ error: 'Too many requests. Please try again shortly.' });
+    }
+    bucket.count += 1;
+    return next();
+  };
 }
 
 function parseJsonResult(text) {
