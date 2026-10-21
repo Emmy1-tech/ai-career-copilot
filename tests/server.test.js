@@ -165,3 +165,27 @@ test('security headers are present on API responses', async () => {
     assert.equal(response.headers.get('x-powered-by'), null);
   });
 });
+
+
+test('malformed JSON returns a stable JSON client error', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/api/applications`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"company":'
+    });
+    assert.equal(response.status, 400);
+    assert.match(response.headers.get('content-type') || '', /application\/json/i);
+    assert.equal((await response.json()).error, 'Request body contains invalid JSON.');
+  });
+});
+
+test('oversized JSON returns a stable 413 response', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/api/applications`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ company: 'Acme', role: 'Intern', notes: 'x'.repeat(1_100_000) })
+    });
+    assert.equal(response.status, 413);
+    assert.match(response.headers.get('content-type') || '', /application\/json/i);
+    assert.equal((await response.json()).error, 'Request body is too large.');
+  });
+});
