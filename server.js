@@ -422,5 +422,5 @@ const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === f
 if (isDirectExecution) {
   const port = Number(process.env.PORT || 1295);
   const app = createApp();
-  app.listen(port, () => console.log(`AI Career Copilot running on http://localhost:${port}`));
+  app.listen(port, () => console.log(`AI Career Copilot server started on port ${port}`));
 }
