@@ -100,10 +100,10 @@ The persistence adapter is intentionally simple so the project is easy to unders
 
 ## Security and production readiness
 
-Baseline HTTP security headers are set by the Express server. This is not a substitute for a full security review, authentication, authorization, rate limiting, or a managed database. See [SECURITY.md](SECURITY.md) and the [security and quality wiki](docs/wiki/security-quality.md).
+Baseline HTTP security headers are set by the Express server. This is not a substitute for a full security review, authentication, authorization, distributed rate limiting, or a managed database. The API applies a basic in-memory per-process request limit to AI endpoints. See [SECURITY.md](SECURITY.md) and the [security and quality wiki](docs/wiki/security-quality.md).
 
 
-This is an internship portfolio project and is not yet a production multi-user service. Authentication/authorization, rate limiting, CSRF strategy, a managed database, monitoring, backups, and privacy/legal review are not implemented. The current app has no user accounts, so do not use it to store real sensitive job-search data on a public server. Keep secrets in the host's environment settings and never commit `.env`.
+This is an internship portfolio project and is not yet a production multi-user service. Authentication/authorization, a CSRF strategy, a managed database, distributed rate limiting, monitoring, backups, and privacy/legal review are not implemented. The current app has no user accounts, so do not use it to store real sensitive job-search data on a public server. Keep secrets in the host's environment settings and never commit `.env`.
 
 ## Data honesty
 
