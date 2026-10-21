@@ -34,7 +34,7 @@ The response includes `agent: "career-planner-v1"`, the normalized goal, categor
 ## Example curl
 
 ```bash
-curl -X POST http://localhost:1295/api/agent/plan \
+curl -X POST http://127.0.0.1:1295/api/agent/plan \
   -H "Content-Type: application/json" \
   -d '{"goal":"Prepare my portfolio for an internship","category":"portfolio"}'
 ```
