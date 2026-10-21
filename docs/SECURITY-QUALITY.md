@@ -5,11 +5,12 @@ This is a portfolio/demo application. The checks below distinguish protections a
 ## Current safeguards
 
 - Express disables the `X-Powered-By` header.
-- JSON request bodies are limited to 1 MB.
+- JSON request bodies are limited to 1 MB; malformed JSON receives a stable 400 response and oversized bodies receive a stable 413 response.
 - Application creation validates required fields, status values, optional text fields, and HTTP(S) job URLs.
 - Resume and assistant inputs have length/type checks.
 - Gemini calls are server-side; the API key is read from environment variables.
 - User-facing API errors avoid returning raw internal error details for generic server failures.
+- Resume analysis and assistant routes have a configurable in-memory per-process request limit; Gemini failures return generic errors and provider response bodies are not logged.
 - Automated API tests and JavaScript syntax checks run in GitHub Actions.
 
 ## Risks and recommended work
@@ -18,18 +19,18 @@ This is a portfolio/demo application. The checks below distinguish protections a
 
 1. **Authentication and authorization:** there are no user accounts. Anyone who can reach the API may access or modify application records. Do not store real private job-search data on an unauthenticated public deployment.
 2. **Persistent database:** replace the JSON file store with a managed database and migrations. JSON file writes can lose updates under concurrent requests and may disappear on hosts with ephemeral filesystems.
-3. **Rate limiting and abuse controls:** protect resume and assistant endpoints against automated abuse and unexpected provider costs.
+3. **Distributed abuse controls:** the current in-memory AI endpoint limiter is per process, resets on restart, and is not a substitute for edge-level or distributed limits on a public deployment.
 4. **Privacy:** define retention, deletion, consent, and a privacy notice before accepting personal resumes from public users.
 5. **Secret management:** configure API keys in the hosting provider's secret/environment settings. Never commit `.env` or put keys in frontend code.
 
 ### Additional hardening
 
 - Add security headers, including an explicit Content Security Policy compatible with the UI.
-- Configure appropriate request timeouts, payload limits, and rate limits.
+- Add edge-level/distributed rate limits and verify provider timeouts against the chosen host.
 - Validate model output before rendering or persisting it; escape untrusted content in the browser.
 - Avoid logging resumes, prompts, API keys, or other sensitive user content.
 - Add dependency vulnerability checks and keep dependencies updated.
-- Add tests for malformed JSON, oversized bodies, provider timeout/failure, corrupted persistence files, and concurrent writes.
+- Expand tests for provider timeouts/empty responses, corrupted persistence files, and concurrent writes.
 - Use a managed database with backups and restore tests.
 - Add structured logs, uptime monitoring, and deployment smoke tests.
 - Verify accessibility, keyboard navigation, responsive layouts, and error states in a real browser.
