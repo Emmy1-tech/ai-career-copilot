@@ -1,5 +1,7 @@
 # AI Career Copilot Wiki
 
+**Live app:** https://ai-career-copilot-emmy.onrender.com
+
 ## Purpose
 
 AI Career Copilot is a portfolio project for helping job seekers organize career preparation in one responsive workspace. It demonstrates a full-stack JavaScript application with an Express API, browser-native UI, local persistence, optional Gemini integration, and automated tests.
@@ -40,7 +42,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open `http://localhost:3000`. On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
+Open the local address printed by the server. On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
 
 Quality checks:
 
