@@ -1,69 +1,54 @@
-# Deployment checklist
+# Deployment guide
 
-## Current deployment decision
+## Live application
 
-This repository serves its frontend and Express API from one Node.js process. It also writes application records to a local JSON file at `data/applications.json`. That makes it easy to run locally, but it means:
+**Hosted URL:** https://ai-career-copilot-emmy.onrender.com
 
-- A static-only host cannot run the existing backend.
-- An ephemeral/serverless host can lose JSON-file data when instances restart or scale.
-- The current app has no sign-in or per-user authorization, so it is not ready for public users to store real application records.
+The Render web service is connected to `Emmy1-tech/ai-career-copilot`, deploys from the `main` branch, and uses:
 
-**Recommended order:** test local-network access using [PHONE-TEST.md](PHONE-TEST.md), then choose a public host based on the current backend and persistence requirements. Do not switch production DNS or buy a domain as part of the local test.
+- Runtime: Node.js
+- Build command: `npm install`
+- Start command: `npm start`
+- Region: Ohio
+- Plan: Render free tier
+- Service dashboard: https://dashboard.render.com/web/srv-dbc5gkl9fdbs73bumh70
 
-## Test on a phone first
+The initial deployment build succeeded and the Node server started. Confirm the live health endpoint at [https://ai-career-copilot-emmy.onrender.com/api/health](https://ai-career-copilot-emmy.onrender.com/api/health) and manually test core browser features before treating the app as fully verified. A live service status alone does not prove that every feature or AI integration is working.
 
-Follow [PHONE-TEST.md](PHONE-TEST.md) to access the running development server from a phone on the same trusted Wi-Fi network. This is local-network access only; it does not publish the app to the internet. Never port-forward port 1295 or expose the development server publicly.
+## Important limitations before public use
 
-## Hosting options
+The app currently has no authentication or per-user authorization. Application records are served from one shared JSON store, and the configured temporary storage path is not durable. Do not enter real resumes, private job-search notes, or personal application records. The service is currently suitable as a portfolio demo only.
 
-### Option A: Existing Node.js host
+Before using real data or inviting other users:
 
-If your Hostinger plan supports Node.js 20+, a long-running Node process, environment variables, and persistent storage, it may run the existing app with fewer code changes.
+- Add authentication and per-user data ownership.
+- Migrate the JSON store to a managed database with backups and migrations.
+- Add distributed rate limiting and abuse controls.
+- Add monitoring, privacy documentation, and a security review.
+- Configure `GEMINI_API_KEY` in Render's environment settings if Gemini-powered features should be enabled. Never commit the key or place it in browser code.
 
-1. Connect the repository `Emmy1-tech/ai-career-copilot` in the host dashboard.
-2. Install/build command: `npm install`.
-3. Start command: `npm start`.
-4. Use the host-provided port if the platform sets `PORT`.
-5. Add secrets in the host environment settings; do not upload `.env`.
-6. Confirm persistent storage is supported and configured before relying on application records.
-7. Test `/api/health`, create/update/delete an application, and try resume analysis.
+## Automatic deployment
 
-The exact Hostinger plan and features must be checked in its dashboard; do not assume every plan includes Node.js hosting or a persistent filesystem.
-
-### Option B: Cloudflare
-
-The current Express server and local JSON store cannot simply be uploaded to Cloudflare Pages as a static site. To use a Cloudflare Workers free subdomain, the application needs a Workers-compatible backend and persistent storage such as D1, plus migration and tests for the existing API behavior. Do this as a separate implementation and verify all existing features before routing public traffic to it.
-
-Cloudflare documentation:
-- [Workers](https://developers.cloudflare.com/workers/)
-- [D1](https://developers.cloudflare.com/d1/)
-- [Workers Builds / Git integration](https://developers.cloudflare.com/workers/ci-cd/builds/)
-
-A Cloudflare account alone does not mean the app is deployed. The public URL only exists after a successful deployment.
-
-## Free hosted URL
-
-A provider may offer a free subdomain, but quotas, sleep behavior, storage durability, and supported runtimes vary. Verify the current plan terms before choosing it. A free static-site host alone cannot run `server.js` or persist the app's data.
-
-## Custom domain: careercopilotai.io
-
-The desired domain is `careercopilotai.io`. A custom `.io` domain is normally a paid registration; you can use a free provider subdomain while testing. To connect the custom domain later, you must first register/control it, add it in the chosen host dashboard, and apply the exact DNS records supplied by that host or registrar. Never guess DNS records.
+Render is configured to deploy updates from `main`. After a change is merged into `main`, inspect the Render dashboard and confirm the deployment completes. Then test the live app and health endpoint.
 
 ## Environment variables
 
-See `.env.example`. Set secrets in the hosting provider's environment panel. Never commit a real `GEMINI_API_KEY` or `.env` file.
+The repository includes `.env.example` for local development. Set production secrets in Render's environment settings, not in GitHub. Relevant variables include:
+
+- `GEMINI_API_KEY`: optional server-side Gemini API key.
+- `GEMINI_MODEL`: optional model name; defaults to `gemini-2.5-flash`.
+- `DATA_DIR`: data directory. The current hosted configuration uses temporary storage; do not treat it as durable.
+
+Render supplies the `PORT` environment variable automatically.
+
+## Local development and phone testing
+
+Local development instructions are in [`LOCAL-SETUP.md`](LOCAL-SETUP.md). [`PHONE-TEST.md`](PHONE-TEST.md) explains how to test a local development server on the same trusted Wi-Fi network. These are development-only workflows; the public app URL above is the address to share.
+
+## GitHub Pages note
+
+The existing application includes an Express backend, so publishing only the repository as a static GitHub Pages site would not run its API. The Render URL above hosts both the browser UI and Express backend. A separate GitHub Pages frontend would require frontend API configuration and cross-origin security settings.
 
 ## Continuous integration
 
-GitHub Actions runs on pushes to `main` and pull requests targeting `main`. The workflow in `.github/workflows/ci.yml` tests Node.js 20 and 22, installs dependencies, checks JavaScript syntax, and runs the API test suite. CI passing does not prove that a live deployment, Gemini key, custom domain, or browser session has been verified.
-
-## Production hardening required before a public multi-user launch
-
-- Authentication and per-user authorization.
-- Managed database with backups and migrations, or another explicitly durable persistence service.
-- Edge-level/distributed rate limiting and abuse controls (the current in-memory limit is per process only).
-- Monitoring, structured logs, request timeouts, and usage limits.
-- Privacy policy and terms appropriate to the data collected.
-- Security review and integration tests against the deployed host.
-
-This is currently an internship portfolio demo, not a production multi-user service.
+GitHub Actions runs on pushes to `main` and pull requests targeting `main`. The workflow in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) checks Node.js 20 and 22, syntax-checks JavaScript, and runs the API test suite. Passing CI does not prove that the live deployment, Gemini key, or all browser flows are verified.
