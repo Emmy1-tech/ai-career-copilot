@@ -52,7 +52,7 @@ Store adapter (src/store.js) --> DATA_DIR/applications.json
 - Browser inputs are untrusted. Validate them on the server even when HTML form validation exists.
 - The Gemini key is read from the server environment; it must never be placed in browser JavaScript or committed.
 - The JSON store is suitable for local development and limited single-process demos only. It is not a tenant-isolated database.
-- The job endpoint explicitly identifies listings as sample data. Do not imply that they are current real vacancies.
+- The job endpoint explicitly identifies listings as sample data. The UI also builds external search links for LinkedIn, Indeed Canada, and Canada Job Bank; those providers own the listings and the app does not verify them.
 - The agent only returns a plan. It does not run tools, submit applications, send messages, or modify external accounts.
 
 ## Known gaps
