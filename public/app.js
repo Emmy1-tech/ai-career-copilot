@@ -233,9 +233,19 @@ function renderJobs() {
     } catch (error) { toast(error.message); }
   }));
 }
+function updateLiveJobLinks() {
+  const query = $('#liveJobQuery').value.trim() || 'software engineering';
+  const location = $('#liveJobLocation').value.trim() || 'Canada';
+  $('#liveLinkedIn').href = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`;
+  $('#liveIndeed').href = `https://ca.indeed.com/jobs?q=${encodeURIComponent(query)}&l=${encodeURIComponent(location)}`;
+  $('#liveJobBank').href = `https://www.jobbank.gc.ca/jobsearch/jobsearch?searchstring=${encodeURIComponent(query)}&locationstring=${encodeURIComponent(location)}`;
+}
 function initJobs() {
   $('#jobSearch').addEventListener('input', renderJobs);
   $('#jobType').addEventListener('change', renderJobs);
+  $('#liveJobQuery').addEventListener('input', updateLiveJobLinks);
+  $('#liveJobLocation').addEventListener('input', updateLiveJobLinks);
+  updateLiveJobLinks();
 }
 function initInterview() {
   const setQuestion = (index) => {
