@@ -34,7 +34,7 @@ GitHub Actions runs on pushes to `main` and pull requests targeting `main`. The 
 
 - Authentication and per-user authorization.
 - Managed database with backups and migrations.
-- Rate limiting and abuse controls on AI endpoints.
+- Edge-level/distributed rate limiting and abuse controls (the current in-memory limit is per process only).
 - Monitoring, structured logs, request timeouts, and usage limits.
 - Privacy policy and terms appropriate to the data you collect.
 - Security review and integration tests against the deployed host.
