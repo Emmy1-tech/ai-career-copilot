@@ -48,7 +48,7 @@
 - [x] Step 1: Run `npm test` in a Node.js 20+ environment and record the exit status and test count.
 - [x] Step 2: Run `npm run check` and record the exit status.
 - [x] Step 3: Review the CI workflow for Node version coverage and the same test/check commands; record any mismatch.
-- [ ] Step 4: If execution tools are unavailable, do not invent output; state which commands the user or CI must run.
+- [x] Step 4: GitHub Actions was available and ran the test/check commands; no local server is claimed as verified.
 
 Expected verification: GitHub Actions has run `npm test` and `npm run check` on Node.js 20 and 22. No local server was started in this workflow, so localhost is not claimed as verified.
 
@@ -126,7 +126,7 @@ Expected verification: excessive repeated AI requests are limited; normal local 
 - [x] Step 3: Clearly state that no login exists, local JSON storage is single-user/demo-oriented, and public deployment must not hold private career records until identity and per-user authorization are implemented.
 - [x] Step 4: Document sample jobs, the no-key resume fallback, and the requirement to keep Gemini credentials server-side.
 - [x] Step 5: Add a concise security reporting policy to `SECURITY.md`, without publishing private contact details or claiming a formal security program that does not exist.
-- [ ] Step 6: Run `npm test` and `npm run check`; check all documentation links that can be verified from the repository.
+- [x] Step 6: GitHub Actions passed the test and syntax-check commands; all relative links reviewed in README, DEPLOYMENT, SECURITY, and wiki overview/architecture resolve to repository files.
 
 Expected verification: setup instructions match the repository and security claims do not exceed implemented protections.
 
@@ -144,8 +144,8 @@ Expected verification: setup instructions match the repository and security clai
 - [ ] Step 2: Add a tracked package lockfile to make installs reproducible; no `package-lock.json` is currently tracked. CI already runs `npm run check` plus `npm test` after `npm install`.
 - [x] Step 3: Make no unnecessary workflow rename; the existing lowercase `.github/workflows/ci.yml` is already conventional.
 - [x] Step 4: Run all checks available in the current environment.
-- [ ] Step 5: Inspect the latest GitHub Actions run if connector access permits and report its actual state.
-- [ ] Step 6: Summarize changed files, verified tests, unresolved risks, and the next milestone: identity/per-user data ownership plus Cloudflare Workers/D1 compatibility and deployment.
+- [x] Step 5: Inspected GitHub Actions run details and test summaries for Node.js 20 and 22.
+- [x] Step 6: First-milestone summary and remaining risks are reported in the implementation conversation.
 
 Expected verification: local checks and remote CI status are reported independently; no claim that the public deployment is ready while authentication and per-user data ownership are missing.
 
