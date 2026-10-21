@@ -2,6 +2,10 @@
 
 AI Career Copilot is a portfolio-quality full-stack career companion for job seekers and internship applicants. It brings resume feedback, job-match exploration, application tracking, interview practice, and a career-assistant interface into one responsive workspace.
 
+## GitHub Wiki
+
+The official GitHub Wiki is available at https://github.com/Emmy1-tech/ai-career-copilot/wiki. Versioned technical documentation also lives in [`docs/wiki/`](docs/wiki/README.md) so changes can be reviewed alongside code.
+
 ## Product features
 
 - Responsive career dashboard with summary stats and recent applications.
