@@ -18,7 +18,7 @@ This guide tests the existing Node.js app over your own Wi-Fi. It does not publi
    ```
 
 3. Under the active **Wireless LAN adapter Wi-Fi**, find **IPv4 Address**. It may look like `192.168.1.25`. Use the address shown on your computer, not this example.
-4. Do not use the Default Gateway address, and do not use `127.0.0.1` or `localhost` on your phone.
+4. Do not use the Default Gateway address, and do not use `127.0.0.1` or `127.0.0.1` on your phone.
 
 ## 2. Open the site on your phone
 
@@ -32,7 +32,7 @@ For example, if your actual computer IPv4 address is `192.168.1.25`, use `http:/
 
 ## 3. If it does not open
 
-1. Confirm the local site still works on the computer at `http://localhost:1295`.
+1. Confirm the local site still works on the computer at `http://127.0.0.1:1295`.
 2. Confirm both devices are on the same Wi-Fi network. Some guest Wi-Fi networks block devices from communicating with each other.
 3. If Windows Firewall prompts you, only allow Node.js on a **private network** you trust. Do not turn the firewall off.
 4. If no prompt appears, Windows may be blocking inbound connections. On a trusted private network, create a narrowly scoped inbound TCP rule for port `1295`; remove the rule after testing if you no longer need it.
