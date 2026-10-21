@@ -10,7 +10,7 @@ AI Career Copilot is a portfolio-quality full-stack career companion for job see
 - Application tracker with create, list, status update, and delete flows.
 - Interview question practice with STAR-style prompts and in-session notes.
 - AI career assistant endpoint that uses Gemini only when a server-side API key is configured.
-- Input validation, JSON error responses, a health endpoint, and automated API tests.
+- Input validation, JSON error responses, a health endpoint, automated API tests, and GitHub Actions CI on Node.js 20 and 22.
 
 ## Stack
 
@@ -100,8 +100,8 @@ The repository can run on a Node.js host that supports a persistent filesystem, 
 - Add real authentication and per-user data ownership.
 - Replace JSON persistence with a managed relational database.
 - Integrate a verified job-data source with attribution and freshness checks.
-- Add rate limiting, stronger request logging, and deployment CI.
-- Expand test coverage for error conditions and AI-provider failures.
+- Add rate limiting, stronger request logging, and production monitoring.
+- Expand test coverage for AI-provider timeouts, persistence failures, and deployed-host smoke tests.
 
 ## License
 
