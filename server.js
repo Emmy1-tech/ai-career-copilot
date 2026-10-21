@@ -152,9 +152,19 @@ export function createApp({ store = createStore() } = {}) {
 
   app.use((req, res) => res.status(404).json({ error: 'Route not found.' }));
   app.use((error, _req, res, _next) => {
-    console.error(error);
-    const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600 ? error.status : 500;
-    res.status(status).json({ error: status === 500 ? 'Something went wrong. Please try again.' : error.message });
+    if (error?.type === 'entity.parse.failed') {
+      return res.status(400).json({ error: 'Request body contains invalid JSON.' });
+    }
+    if (error?.type === 'entity.too.large') {
+      return res.status(413).json({ error: 'Request body is too large.' });
+    }
+
+    const status = Number.isInteger(error?.status) && error.status >= 400 && error.status < 600 ? error.status : 500;
+    if (status >= 500) {
+      console.error('Unhandled application error:', error?.name || 'Error');
+      return res.status(status).json({ error: 'Something went wrong. Please try again.' });
+    }
+    return res.status(status).json({ error: error.message || 'Request could not be processed.' });
   });
   return app;
 }
