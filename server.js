@@ -191,8 +191,9 @@ function parseJsonResult(text) {
   }
 }
 
-const port = Number(process.env.PORT || 3000);
-if (process.env.NODE_ENV !== 'test') {
+const isDirectExecution = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isDirectExecution) {
+  const port = Number(process.env.PORT || 3000);
   const app = createApp();
   app.listen(port, () => console.log(`AI Career Copilot running on http://localhost:${port}`));
 }
