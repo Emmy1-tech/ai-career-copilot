@@ -10,6 +10,7 @@ AI Career Copilot is a portfolio-quality full-stack career companion for job see
 - Application tracker with create, list, status update, and delete flows.
 - Interview question practice with STAR-style prompts and in-session notes.
 - AI career assistant endpoint that uses Gemini only when a server-side API key is configured.
+- Career Agent planner endpoint that returns a bounded, plan-only checklist; it does not execute external actions.
 - Input validation, JSON error responses, a health endpoint, automated API tests, and GitHub Actions CI on Node.js 20 and 22.
 
 ## Stack
@@ -68,6 +69,7 @@ See `.env.example`.
 | POST | `/api/resume/analyze` | Analyze resume text |
 | GET | `/api/jobs` | Sample job listing data |
 | POST | `/api/assistant` | Gemini-powered career assistant (key required) |
+| POST | `/api/agent/plan` | Plan-only career task checklist |
 
 ## Architecture
 
@@ -94,6 +96,13 @@ The role cards are sample data for demonstrating search and matching UI; they ar
 ## Deployment notes
 
 The repository can run on a Node.js host that supports a persistent filesystem, or be adapted to a managed database and serverless platform. A free static hosting service alone cannot run this Express backend. See `DEPLOYMENT.md` for the deployment checklist and custom-domain notes.
+
+## Project documentation
+
+- [Project Wiki](docs/WIKI.md)
+- [Security and Quality Review](docs/SECURITY-QUALITY.md)
+- [Career Agent Design](docs/AGENT.md)
+- [Deployment Guide](DEPLOYMENT.md)
 
 ## Roadmap
 
