@@ -149,6 +149,34 @@ export function createApp({ store = createStore(), geminiFetch = fetch, aiRateLi
     } catch (error) { next(error); }
   });
 
+  app.post('/api/resume/tailor', async (req, res, next) => {
+    try {
+      const { resumeText, jobDescription, targetRole = 'Software Engineering Intern', company = 'Hiring Team' } = req.body ?? {};
+      if (typeof resumeText !== 'string' || resumeText.trim().length < 80) {
+        return res.status(400).json({ error: 'Paste at least 80 characters of resume text.' });
+      }
+      if (typeof jobDescription !== 'string' || jobDescription.trim().length < 80) {
+        return res.status(400).json({ error: 'Paste at least 80 characters from the job description.' });
+      }
+      if (typeof targetRole !== 'string' || !targetRole.trim() || targetRole.trim().length > 160) {
+        return res.status(400).json({ error: 'Target role must be between 1 and 160 characters.' });
+      }
+      if (typeof company !== 'string' || company.trim().length > 120) {
+        return res.status(400).json({ error: 'Company name must be text with at most 120 characters.' });
+      }
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(503).json({ error: 'AI drafting is not configured. Add GEMINI_API_KEY to the server environment to generate tailored bullets and a cover letter.' });
+      }
+
+      const result = await askGemini(
+        'You are a careful job-application writing coach. Return only valid JSON with keys: professionalSummary (string), rewrittenBullets (array of strings), coverLetter (string), truthCheck (array of strings), followUpQuestions (array of strings). Use only facts and experience explicitly present in the resume. Never invent employers, degrees, skills, project details, metrics, dates, certifications, or achievements. If the resume lacks evidence for a requirement, do not claim it; suggest an honest way to address the gap. Do not imply the candidate has already done work not shown in the resume. Use concise professional language, adapt wording to the job description, and use placeholders such as [Hiring Manager] only when details are missing. Keep the summary under 100 words, bullets to at most 6, truthCheck to at most 6, followUpQuestions to at most 4, and the cover letter under 350 words.',
+        `Target role: ${targetRole.trim()}\nCompany: ${company.trim() || 'Hiring Team'}\nResume text:\n${resumeText.trim().slice(0, 12000)}\n\nJob description:\n${jobDescription.trim().slice(0, 12000)}`,
+        geminiFetch
+      );
+      res.json({ source: 'gemini', draft: parseTailorResult(result) });
+    } catch (error) { next(error); }
+  });
+
   app.post('/api/agent/plan', (req, res, next) => {
     try {
       const plan = planCareerTask(req.body ?? {});
@@ -316,6 +344,31 @@ function buildRuleBasedMatch(resume, description) {
       'Prepare an interview example for each skill you choose to highlight.'
     ],
     note: 'This keyword coverage estimate is not an ATS score or a hiring prediction. Missing terms were not detected in the pasted resume; they do not prove you lack those skills.'
+  };
+}
+
+function parseTailorResult(text) {
+  const cleaned = text.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/, '');
+  let result;
+  try {
+    result = JSON.parse(cleaned);
+  } catch {
+    const error = new Error('AI provider returned an invalid drafting response.');
+    error.status = 502;
+    throw error;
+  }
+  if (!result || typeof result !== 'object' || Array.isArray(result) || typeof result.coverLetter !== 'string' || !result.coverLetter.trim()) {
+    const error = new Error('AI provider returned an incomplete drafting response.');
+    error.status = 502;
+    throw error;
+  }
+  const list = (value, max, length = 500) => Array.isArray(value) ? value.filter((item) => typeof item === 'string').map((item) => item.slice(0, length)).slice(0, max) : [];
+  return {
+    professionalSummary: typeof result.professionalSummary === 'string' ? result.professionalSummary.slice(0, 2000) : '',
+    rewrittenBullets: list(result.rewrittenBullets, 6),
+    coverLetter: result.coverLetter.slice(0, 6000),
+    truthCheck: list(result.truthCheck, 6),
+    followUpQuestions: list(result.followUpQuestions, 4)
   };
 }
 
