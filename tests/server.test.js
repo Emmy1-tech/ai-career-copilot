@@ -265,3 +265,43 @@ test('job description match validates inputs and returns honest rule-based evide
     else process.env.GEMINI_API_KEY = originalKey;
   }
 });
+
+
+test('job description match parses a structured Gemini response when configured', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = 'test-key-not-a-real-secret';
+  try {
+    const aiResult = {
+      alignmentScore: 84,
+      summary: 'The resume shows relevant project evidence.',
+      matchedRequirements: ['JavaScript', 'React project'],
+      missingRequirements: ['Python'],
+      evidenceGaps: ['Add a truthful Python example if you have one.'],
+      tailoringSuggestions: ['Move the relevant project higher.'],
+      nextSteps: ['Prepare to explain the project decisions.']
+    };
+    await withServer(async (url) => {
+      const response = await fetch(`${url}/api/resume/match`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          targetRole: 'Software Engineering Intern',
+          resumeText: 'Built a React and JavaScript project with automated tests and a Node.js API. Used Git to track changes.',
+          jobDescription: 'We seek an intern with JavaScript, React, Python, teamwork, and testing skills. You will build features and work with the engineering team.'
+        })
+      });
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.source, 'gemini');
+      assert.equal(body.analysis.alignmentScore, 84);
+      assert.deepEqual(body.analysis.missingRequirements, ['Python']);
+      assert.match(body.analysis.note, /not an ATS score/i);
+    }, {
+      geminiFetch: async () => new Response(JSON.stringify({
+        candidates: [{ content: { parts: [{ text: ' ```json\n' + JSON.stringify(aiResult) + '\n``` ' }] } }]
+      }), { status: 200, headers: { 'content-type': 'application/json' } })
+    });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
+});
