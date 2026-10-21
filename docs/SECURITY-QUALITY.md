@@ -18,7 +18,7 @@ This is a portfolio/demo application. The checks below distinguish protections a
 ### High priority before public multi-user launch
 
 1. **Authentication and authorization:** there are no user accounts. Anyone who can reach the API may access or modify application records. Do not store real private job-search data on an unauthenticated public deployment.
-2. **Persistent database:** replace the JSON file store with a managed database and migrations. JSON file writes can lose updates under concurrent requests and may disappear on hosts with ephemeral filesystems.
+2. **Persistent database:** replace the JSON file store with a managed database and migrations. The JSON store now serializes mutations within one Node.js process, but has no cross-process locking and may disappear on hosts with ephemeral filesystems.
 3. **Distributed abuse controls:** the current in-memory AI endpoint limiter is per process, resets on restart, and is not a substitute for edge-level or distributed limits on a public deployment.
 4. **Privacy:** define retention, deletion, consent, and a privacy notice before accepting personal resumes from public users.
 5. **Secret management:** configure API keys in the hosting provider's secret/environment settings. Never commit `.env` or put keys in frontend code.
