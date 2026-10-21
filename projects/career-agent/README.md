@@ -18,12 +18,12 @@ npm install
 npm run dev
 ```
 
-The app runs at `http://localhost:1295` by default.
+The app runs at `http://127.0.0.1:1295` by default.
 
 ## Example
 
 ```bash
-curl -X POST http://localhost:1295/api/agent/plan \
+curl -X POST http://127.0.0.1:1295/api/agent/plan \
   -H "Content-Type: application/json" \
   -d '{"goal":"Prepare my portfolio for an internship","category":"portfolio"}'
 ```
