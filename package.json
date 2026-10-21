@@ -4,12 +4,14 @@
   "private": false,
   "description": "A full-stack AI career companion for resume feedback, job matching, application tracking, and interview practice.",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test",
-    "check": "node --check server.js && node --check public/app.js && node --check tests/server.test.js"
+    "check": "node --check server.js && node --check src/store.js && node --check public/app.js && node --check tests/server.test.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
