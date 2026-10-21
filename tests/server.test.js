@@ -414,3 +414,26 @@ test('concurrent local application writes do not drop records', async () => {
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+
+test('Gemini empty responses are rejected rather than presented as successful advice', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = 'test-key-not-a-real-secret';
+  try {
+    await withServer(async (url) => {
+      const response = await fetch(`${url}/api/assistant`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: 'Help me prepare for a software engineering interview.' })
+      });
+      assert.equal(response.status, 502);
+      assert.equal((await response.json()).error, 'Something went wrong. Please try again.');
+    }, {
+      geminiFetch: async () => new Response(JSON.stringify({ candidates: [] }), {
+        status: 200, headers: { 'content-type': 'application/json' }
+      })
+    });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
+});
