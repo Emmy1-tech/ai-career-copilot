@@ -50,7 +50,7 @@
 - [x] Step 3: Review the CI workflow for Node version coverage and the same test/check commands; record any mismatch.
 - [x] Step 4: GitHub Actions was available and ran the test/check commands; no local server is claimed as verified.
 
-Expected verification: GitHub Actions has run `npm test` and `npm run check` on Node.js 20 and 22. No local server was started in this workflow, so localhost is not claimed as verified.
+Expected verification: GitHub Actions has run `npm test` and `npm run check` on Node.js 20 and 22. No local server was started in this workflow, so 127.0.0.1 is not claimed as verified.
 
 ### Task 2: Pin malformed and oversized request behavior with tests
 
