@@ -9,7 +9,7 @@ Browser (public/)
   | fetch() over same-origin HTTP
   v
 Express application (server.js)
-  |-- HTTP security headers and JSON size limit
+  |-- HTTP security headers/CSP, JSON size limit, and in-memory AI route throttling
   |-- Resume review and job-description match (Gemini when configured, labelled rules-based fallback otherwise)
   |-- Evidence-grounded resume/cover-letter drafting (Gemini key required)
   |-- In-memory per-process request limiting for AI routes
