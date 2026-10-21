@@ -53,7 +53,7 @@ if not exist node_modules (
 )
 
 echo Starting AI Career Copilot...
-echo When the server is ready, open http://localhost:1295 in your browser.
+echo When the server is ready, open http://127.0.0.1:1295 in your browser.
 echo Keep this window open while using the app.
 echo To stop the server, return here and press Ctrl+C.
 echo.
