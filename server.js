@@ -138,7 +138,8 @@ export function createApp({ store = createStore() } = {}) {
   app.use((req, res) => res.status(404).json({ error: 'Route not found.' }));
   app.use((error, _req, res, _next) => {
     console.error(error);
-    res.status(500).json({ error: 'Something went wrong. Please try again.' });
+    const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600 ? error.status : 500;
+    res.status(status).json({ error: status === 500 ? 'Something went wrong. Please try again.' : error.message });
   });
   return app;
 }
