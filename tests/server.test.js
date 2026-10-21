@@ -7,9 +7,9 @@ import path from 'node:path';
 import { createApp } from '../server.js';
 import { createStore } from '../src/store.js';
 
-async function withServer(run) {
+async function withServer(run, appOptions = {}) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'career-copilot-'));
-  const server = createServer(createApp({ store: createStore({ filePath: path.join(directory, 'applications.json') }) }));
+  const server = createServer(createApp({ store: createStore({ filePath: path.join(directory, 'applications.json') }), ...appOptions }));
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const url = `http://127.0.0.1:${server.address().port}`;
   try { await run(url); }
@@ -188,4 +188,46 @@ test('oversized JSON returns a stable 413 response', async () => {
     assert.match(response.headers.get('content-type') || '', /application\/json/i);
     assert.equal((await response.json()).error, 'Request body is too large.');
   });
+});
+
+
+test('Gemini provider failures return a safe 502 without provider response details', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  process.env.GEMINI_API_KEY = 'test-key-not-a-real-secret';
+  try {
+    await withServer(async (url) => {
+      const response = await fetch(`${url}/api/assistant`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: 'Help me prepare for a software engineering interview.' })
+      });
+      assert.equal(response.status, 502);
+      const body = await response.json();
+      assert.equal(body.error, 'Something went wrong. Please try again.');
+      assert.doesNotMatch(JSON.stringify(body), /private provider details|test-key-not-a-real-secret/i);
+    }, { geminiFetch: async () => new Response('private provider details', { status: 429 }) });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
+});
+
+test('AI endpoints apply a configurable request limit', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+  try {
+    await withServer(async (url) => {
+      const request = () => fetch(`${url}/api/assistant`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message: 'Help me prepare for an interview.' })
+      });
+      const first = await request();
+      assert.equal(first.status, 503);
+      const second = await request();
+      assert.equal(second.status, 429);
+      assert.equal((await second.json()).error, 'Too many requests. Please try again shortly.');
+    }, { aiRateLimit: { windowMs: 60_000, max: 1 } });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
 });
