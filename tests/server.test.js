@@ -154,3 +154,14 @@ test('career agent rejects empty goals and unsupported categories', async () => 
     assert.equal(invalid.status, 400);
   });
 });
+
+test('security headers are present on API responses', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(`${url}/api/health`);
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(response.headers.get('x-frame-options'), 'DENY');
+    assert.equal(response.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+    assert.match(response.headers.get('permissions-policy') || '', /camera=\(\)/);
+    assert.equal(response.headers.get('x-powered-by'), null);
+  });
+});
