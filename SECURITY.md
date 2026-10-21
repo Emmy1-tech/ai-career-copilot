@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository is a portfolio/demo application. Baseline request validation and HTTP security headers are present, but authentication, per-user authorization, rate limiting, and production database controls are not complete. Do not use a public deployment to store real sensitive personal data until these gaps are addressed.
+This repository is a portfolio/demo application. Baseline request validation, HTTP security headers, normalized JSON parser errors, and basic in-memory per-process rate limiting on AI endpoints are present. Authentication, per-user authorization, distributed abuse controls, and production database controls are not complete. Do not use a public deployment to store real sensitive personal data until these gaps are addressed.
 
 ## Supported version
 
