@@ -1,42 +1,69 @@
 # Deployment checklist
 
-## Important: choose a Node.js host for the full-stack app
+## Current deployment decision
 
-This repository serves the frontend and Express API from the same Node.js process. A static-only host can publish the HTML/CSS/JS, but it cannot run `server.js` or persist API data. For a public demo, choose a Node.js service with a persistent disk or first migrate the JSON store to a managed database.
+This repository serves its frontend and Express API from one Node.js process. It also writes application records to a local JSON file at `data/applications.json`. That makes it easy to run locally, but it means:
 
-## Local development
+- A static-only host cannot run the existing backend.
+- An ephemeral/serverless host can lose JSON-file data when instances restart or scale.
+- The current app has no sign-in or per-user authorization, so it is not ready for public users to store real application records.
 
-The default local address is `http://localhost:1295`. Run `npm install`, copy `.env.example` to `.env`, and start with `npm run dev`. Set `PORT` explicitly in the host environment for deployment; hosted platforms often inject their own port.
+**Recommended order:** test local-network access using [PHONE-TEST.md](PHONE-TEST.md), then choose a public host based on the current backend and persistence requirements. Do not switch production DNS or buy a domain as part of the local test.
 
-## Basic deployment steps
+## Test on a phone first
 
-1. Connect `Emmy1-tech/ai-career-copilot` to a Node.js hosting provider that supports Node 20+.
-2. Set the build/install command to `npm install`.
-3. Set the start command to `npm start`.
-4. Add environment variables in the host dashboard; do not upload `.env`.
-5. Configure `GEMINI_API_KEY` only if you want live Gemini-powered responses.
-6. Test `/api/health`, create and update an application, and submit a resume review.
-7. Confirm the host uses persistent storage before relying on application records. The current JSON adapter writes to `data/applications.json`.
+Follow [PHONE-TEST.md](PHONE-TEST.md) to access the running development server from a phone on the same trusted Wi-Fi network. This is local-network access only; it does not publish the app to the internet. Never port-forward port 1295 or expose the development server publicly.
 
-## Custom domain: careercopilotai.io
+## Hosting options
 
-You must control the domain to connect it. In the host dashboard, add `careercopilotai.io` and optionally `www.careercopilotai.io`, then apply the exact DNS records provided by the host registrar/DNS dashboard. Wait for DNS propagation and HTTPS certificate provisioning. Do not point DNS to guessed records.
+### Option A: Existing Node.js host
+
+If your Hostinger plan supports Node.js 20+, a long-running Node process, environment variables, and persistent storage, it may run the existing app with fewer code changes.
+
+1. Connect the repository `Emmy1-tech/ai-career-copilot` in the host dashboard.
+2. Install/build command: `npm install`.
+3. Start command: `npm start`.
+4. Use the host-provided port if the platform sets `PORT`.
+5. Add secrets in the host environment settings; do not upload `.env`.
+6. Confirm persistent storage is supported and configured before relying on application records.
+7. Test `/api/health`, create/update/delete an application, and try resume analysis.
+
+The exact Hostinger plan and features must be checked in its dashboard; do not assume every plan includes Node.js hosting or a persistent filesystem.
+
+### Option B: Cloudflare
+
+The current Express server and local JSON store cannot simply be uploaded to Cloudflare Pages as a static site. To use a Cloudflare Workers free subdomain, the application needs a Workers-compatible backend and persistent storage such as D1, plus migration and tests for the existing API behavior. Do this as a separate implementation and verify all existing features before routing public traffic to it.
+
+Cloudflare documentation:
+- [Workers](https://developers.cloudflare.com/workers/)
+- [D1](https://developers.cloudflare.com/d1/)
+- [Workers Builds / Git integration](https://developers.cloudflare.com/workers/ci-cd/builds/)
+
+A Cloudflare account alone does not mean the app is deployed. The public URL only exists after a successful deployment.
 
 ## Free hosted URL
 
-Many platforms offer a free subdomain, but terms, quotas, sleep behavior, persistent disk, and backend support vary. Confirm that the selected free tier supports a long-running Node server and persistence before using it. A free static site can host a landing page, but it cannot run this backend by itself.
+A provider may offer a free subdomain, but quotas, sleep behavior, storage durability, and supported runtimes vary. Verify the current plan terms before choosing it. A free static-site host alone cannot run `server.js` or persist the app's data.
+
+## Custom domain: careercopilotai.io
+
+The desired domain is `careercopilotai.io`. A custom `.io` domain is normally a paid registration; you can use a free provider subdomain while testing. To connect the custom domain later, you must first register/control it, add it in the chosen host dashboard, and apply the exact DNS records supplied by that host or registrar. Never guess DNS records.
+
+## Environment variables
+
+See `.env.example`. Set secrets in the hosting provider's environment panel. Never commit a real `GEMINI_API_KEY` or `.env` file.
 
 ## Continuous integration
 
-GitHub Actions runs on pushes to `main` and pull requests targeting `main`. The workflow in `.github/workflows/ci.yml` tests Node.js 20 and 22, installs dependencies, checks JavaScript syntax, and runs the API test suite. Read [CI.md](docs/CI.md) for workflow details and troubleshooting. CI passing means those automated checks pass; it does not mean a live deployment, Gemini key, custom domain, or browser session has been verified.
+GitHub Actions runs on pushes to `main` and pull requests targeting `main`. The workflow in `.github/workflows/ci.yml` tests Node.js 20 and 22, installs dependencies, checks JavaScript syntax, and runs the API test suite. CI passing does not prove that a live deployment, Gemini key, custom domain, or browser session has been verified.
 
-## Production hardening still required
+## Production hardening required before a public multi-user launch
 
 - Authentication and per-user authorization.
-- Managed database with backups and migrations.
+- Managed database with backups and migrations, or another explicitly durable persistence service.
 - Edge-level/distributed rate limiting and abuse controls (the current in-memory limit is per process only).
 - Monitoring, structured logs, request timeouts, and usage limits.
-- Privacy policy and terms appropriate to the data you collect.
+- Privacy policy and terms appropriate to the data collected.
 - Security review and integration tests against the deployed host.
 
-The current application is an internship portfolio demo, not a production multi-user service.
+This is currently an internship portfolio demo, not a production multi-user service.
