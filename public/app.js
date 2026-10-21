@@ -176,6 +176,38 @@ async function initResume() {
       $('#jobMatchResults').innerHTML = `<div class="results-placeholder"><div class="placeholder-icon">!</div><h3>Comparison couldn't finish</h3><p>${escapeHtml(error.message)}</p></div>`;
     } finally { button.disabled = false; button.innerHTML = original; }
   });
+
+  $('#tailorButton').addEventListener('click', async () => {
+    const resumeText = $('#resumeText').value.trim();
+    const jobDescription = $('#jobDescription').value.trim();
+    if (resumeText.length < 80 || jobDescription.length < 80) {
+      $('#tailorResults').hidden = false;
+      $('#tailorResults').innerHTML = '<div class="results-placeholder"><h3>Resume and job description needed</h3><p>Add at least 80 characters in both fields before drafting.</p></div>';
+      toast('Add your resume and job description first.');
+      return;
+    }
+    const button = $('#tailorButton');
+    const original = button.innerHTML;
+    button.disabled = true; button.textContent = 'Drafting…';
+    $('#tailorResults').hidden = false;
+    $('#tailorResults').innerHTML = '<div class="results-placeholder"><div class="placeholder-icon">✧</div><h3>Preparing your draft…</h3><p>Using only the evidence in your resume and the requirements you supplied.</p></div>';
+    try {
+      const data = await api('/api/resume/tailor', {
+        method: 'POST',
+        body: JSON.stringify({
+          resumeText,
+          jobDescription,
+          targetRole: $('#targetRole').value,
+          company: $('#targetCompany').value
+        })
+      });
+      const draft = data.draft;
+      const renderList = (items) => items?.length ? items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') : '<li>No items returned.</li>';
+      $('#tailorResults').innerHTML = `<div><span class="result-label">AI-GENERATED DRAFT · REVIEW BEFORE USING</span><div class="analysis-section"><h4>Professional summary draft</h4><p style="white-space:pre-wrap">${escapeHtml(draft.professionalSummary)}</p></div><div class="analysis-section"><h4>Tailored resume bullets</h4><ul>${renderList(draft.rewrittenBullets)}</ul></div><div class="analysis-section"><h4>Cover letter draft</h4><p style="white-space:pre-wrap">${escapeHtml(draft.coverLetter)}</p></div><div class="analysis-section"><h4>Truth check before submitting</h4><ul>${renderList(draft.truthCheck)}</ul></div><div class="analysis-section"><h4>Questions to strengthen the application</h4><ul>${renderList(draft.followUpQuestions)}</ul></div></div>`;
+    } catch (error) {
+      $('#tailorResults').innerHTML = `<div class="results-placeholder"><div class="placeholder-icon">!</div><h3>Draft couldn't finish</h3><p>${escapeHtml(error.message)}</p></div>`;
+    } finally { button.disabled = false; button.innerHTML = original; }
+  });
 }
 async function loadJobs() {
   if (state.jobs.length) return renderJobs();
