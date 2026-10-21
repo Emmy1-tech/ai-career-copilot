@@ -11,6 +11,7 @@ Browser (public/)
 Express application (server.js)
   |-- HTTP security headers and JSON size limit
   |-- Resume review and job-description match (Gemini when configured, labelled rules-based fallback otherwise)
+  |-- Evidence-grounded resume/cover-letter drafting (Gemini key required)
   |-- In-memory per-process request limiting for AI routes
   |-- Career assistant (Gemini key required)
   |-- Career agent plan endpoint (src/career-agent.js)
@@ -41,6 +42,7 @@ Store adapter (src/store.js) --> DATA_DIR/applications.json
 | DELETE | `/api/applications/:id` | Delete a record |
 | POST | `/api/resume/analyze` | Resume feedback |
 | POST | `/api/resume/match` | Compare resume evidence with job requirements; not an ATS score |
+| POST | `/api/resume/tailor` | Draft resume bullets and cover letter from supplied evidence (Gemini key required) |
 | POST | `/api/agent/plan` | Create a plan-only career task plan |
 | POST | `/api/assistant` | Gemini career assistant |
 | GET | `/api/jobs` | Sample listings for the demo UI |
