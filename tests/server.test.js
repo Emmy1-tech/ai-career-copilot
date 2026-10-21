@@ -231,3 +231,37 @@ test('AI endpoints apply a configurable request limit', async () => {
     else process.env.GEMINI_API_KEY = originalKey;
   }
 });
+
+
+test('job description match validates inputs and returns honest rule-based evidence when AI is not configured', async () => {
+  const originalKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+  try {
+    await withServer(async (url) => {
+      const invalid = await fetch(`${url}/api/resume/match`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ resumeText: 'too short', jobDescription: 'We need a software engineer with Python and SQL skills.' })
+      });
+      assert.equal(invalid.status, 400);
+
+      const response = await fetch(`${url}/api/resume/match`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          targetRole: 'Software Engineering Intern',
+          resumeText: 'Built a JavaScript and React project, wrote tests, used Git and Node.js to create a REST API.',
+          jobDescription: 'We seek a software engineering intern with Python, SQL, JavaScript, React, Git, and automated testing experience. Candidates should explain their project decisions clearly.'
+        })
+      });
+      assert.equal(response.status, 200);
+      const body = await response.json();
+      assert.equal(body.source, 'rules-based-demo');
+      assert.ok(body.analysis.alignmentScore >= 0 && body.analysis.alignmentScore <= 100);
+      assert.ok(body.analysis.matchedRequirements.some((item) => /javascript/i.test(item)));
+      assert.ok(body.analysis.missingRequirements.some((item) => /python/i.test(item)));
+      assert.match(body.analysis.note, /not an ATS score/i);
+    });
+  } finally {
+    if (originalKey === undefined) delete process.env.GEMINI_API_KEY;
+    else process.env.GEMINI_API_KEY = originalKey;
+  }
+});
