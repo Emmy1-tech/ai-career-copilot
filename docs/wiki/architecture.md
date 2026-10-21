@@ -57,4 +57,4 @@ Store adapter (src/store.js) --> DATA_DIR/applications.json
 
 ## Known gaps
 
-Authentication and per-user authorization are not implemented. Anyone who can reach the current API can access or change the same application list. Local JSON writes do not provide robust multi-process locking. The current AI endpoint limiter is in-memory and per-process only. A managed database, identity layer, per-user access checks, edge-level/distributed rate limits, and deployed-browser tests are required before a public multi-user launch.
+Authentication and per-user authorization are not implemented. Anyone who can reach the current API can access or change the same application list. Local JSON mutations are serialized within one Node.js process, but there is no cross-process locking. The current AI endpoint limiter is in-memory and per-process only. A managed database, identity layer, per-user access checks, edge-level/distributed rate limits, and deployed-browser tests are required before a public multi-user launch.
