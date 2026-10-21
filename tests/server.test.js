@@ -393,3 +393,24 @@ test('Gemini timeouts return a bounded gateway timeout without leaking provider 
     else process.env.GEMINI_API_KEY = originalKey;
   }
 });
+
+
+test('concurrent local application writes do not drop records', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'career-copilot-store-'));
+  try {
+    const store = createStore({ filePath: path.join(directory, 'applications.json') });
+    await Promise.all(Array.from({ length: 24 }, (_, index) => store.createApplication({
+      company: `Company ${index}`,
+      role: 'Software Engineering Intern',
+      status: 'Saved',
+      location: '',
+      jobUrl: '',
+      notes: ''
+    })));
+    const applications = await store.listApplications();
+    assert.equal(applications.length, 24);
+    assert.equal(new Set(applications.map((item) => item.company)).size, 24);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
