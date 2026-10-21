@@ -9,7 +9,7 @@ The [official GitHub Wiki](https://github.com/Emmy1-tech/ai-career-copilot/wiki)
 ## Product features
 
 - Responsive career dashboard with summary stats and recent applications.
-- Resume review endpoint with a clearly labelled rules-based fallback and optional Gemini API integration.
+- Resume review and resume-to-job-description evidence matching, with clearly labelled rules-based fallbacks and optional Gemini API integration.
 - Job-match discovery UI using explicitly labelled sample listings (not live job data).
 - Application tracker with create, list, status update, and delete flows.
 - Interview question practice with STAR-style prompts and in-session notes.
@@ -80,6 +80,7 @@ See `.env.example`.
 | PATCH | `/api/applications/:id` | Update an application status |
 | DELETE | `/api/applications/:id` | Delete an application |
 | POST | `/api/resume/analyze` | Analyze resume text |
+| POST | `/api/resume/match` | Compare resume evidence with a pasted job description; not an ATS or hiring prediction |
 | GET | `/api/jobs` | Sample job listing data |
 | POST | `/api/assistant` | Gemini-powered career assistant (key required) |
 | POST | `/api/agent/plan` | Plan-only career task checklist |
