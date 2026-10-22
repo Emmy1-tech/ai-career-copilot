@@ -1,7 +1,7 @@
 # AI Career Copilot
 
 **Live app:** https://ai-career-copilot-emmy.onrender.com
-
+https://careerpilot-ruhkbenh.manus.space/dashboard/
 AI Career Copilot is a portfolio-quality full-stack career companion for job seekers and internship applicants. It brings resume feedback, job-match exploration, application tracking, interview practice, and a career-assistant interface into one responsive workspace.
 
 > The hosted demo is public. Do not enter sensitive personal information yet: the current application tracker has no sign-in or per-user data isolation, and its JSON-file storage is not durable on the current hosting setup.
